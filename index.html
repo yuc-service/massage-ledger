@@ -1,0 +1,1070 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2f6f62">
+<title>按摩工作室記帳本</title>
+<style>
+:root{
+  --bg:#f5f2ec; --surface:#fff; --surface2:#f9f7f3; --line:#e4ded3; --text:#2b2723; --muted:#7a7268;
+  --accent:#2f6f62; --accent-ink:#fff; --accent-soft:#e3efeb;
+  --income:#2f7a4f; --expense:#b4553a; --warn:#b07a12; --night:#4b4a8f; --night-soft:#e9e8f6;
+  --radius:14px; --shadow:0 1px 2px rgba(40,30,20,.06),0 4px 14px rgba(40,30,20,.05); --scrim:rgba(30,25,20,.45);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#161513; --surface:#211f1c; --surface2:#2a2724; --line:#3a3631; --text:#efe9e1; --muted:#a59d92;
+    --accent:#5fb3a1; --accent-ink:#0d1f1b; --accent-soft:#1f3631;
+    --income:#6cc58f; --expense:#e2876c; --warn:#e0b04a; --night:#a9a7f0; --night-soft:#2a2943;
+    --shadow:none; --scrim:rgba(0,0,0,.6); color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+    --bg:#161513; --surface:#211f1c; --surface2:#2a2724; --line:#3a3631; --text:#efe9e1; --muted:#a59d92;
+    --accent:#5fb3a1; --accent-ink:#0d1f1b; --accent-soft:#1f3631;
+    --income:#6cc58f; --expense:#e2876c; --warn:#e0b04a; --night:#a9a7f0; --night-soft:#2a2943;
+    --shadow:none; --scrim:rgba(0,0,0,.6); color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;background:var(--bg);color:var(--text)}
+body{font:15px/1.5 -apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;padding-bottom:calc(76px + env(safe-area-inset-bottom))}
+button,input,select{font:inherit;color:inherit}
+.top{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:calc(12px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 12px max(16px,env(safe-area-inset-left,0px));background:var(--bg);border-bottom:1px solid var(--line)}
+.top h1{font-size:18px;margin:0;line-height:1.3}
+.top p{margin:0;font-size:12px;color:var(--muted)}
+.badge{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 11px;font-size:12px;white-space:nowrap;cursor:pointer}
+.badge::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px;vertical-align:1px;background:var(--muted)}
+.badge.ok::before{background:var(--income)} .badge.syncing::before{background:var(--accent)}
+.badge.pending::before{background:var(--warn)} .badge.error::before{background:var(--expense)}
+main{max-width:720px;margin:0 auto;padding-block:14px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.tab{display:none}.tab.active{display:block}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin-bottom:12px;box-shadow:var(--shadow)}
+.card h3{margin:0 0 10px;font-size:15px}
+.hint{font-size:12.5px;color:var(--muted);margin:4px 0 10px}
+label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:10px;min-width:0}
+input,select{display:block;width:100%;margin-top:4px;padding:0 11px;border:1px solid var(--line);border-radius:10px;background-color:var(--surface2);height:46px;line-height:44px;font-size:16px;-webkit-appearance:none;appearance:none}
+select{padding-right:30px;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 17px) 50%,calc(100% - 12px) 50%;background-size:5px 5px,5px 5px;background-repeat:no-repeat;white-space:nowrap;overflow:hidden}
+input[type=checkbox]{-webkit-appearance:auto;appearance:auto;height:auto;line-height:normal}
+input::-webkit-date-and-time-value{min-height:44px;line-height:44px}
+input[type=date],input[type=time],input[type=month]{min-width:0;max-width:100%;text-align:left;padding:0 8px}
+input::-webkit-date-and-time-value{text-align:left}
+select{text-overflow:ellipsis;min-width:0}
+input:focus,select:focus{outline:2px solid var(--accent);outline-offset:0;border-color:transparent}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.filters{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 10px}
+.filters .wide{grid-column:1/-1}
+.seg{display:flex;background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:3px;margin-bottom:12px}
+.seg button{flex:1;border:0;background:transparent;padding:9px;border-radius:9px;cursor:pointer;color:var(--muted)}
+.seg button.on{background:var(--surface);color:var(--text);font-weight:600;box-shadow:var(--shadow)}
+.chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:6px;margin:0 0 10px}
+.chip{border:1px solid var(--line);background:var(--surface2);border-radius:999px;height:34px;padding:0 6px;font-size:13px;cursor:pointer;white-space:nowrap}
+.chip.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:600}
+.primary{width:100%;border:0;border-radius:12px;background:var(--accent);color:var(--accent-ink);padding:13px;font-weight:600;font-size:16px;cursor:pointer}
+.ghost{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:13.5px}
+.calc{background:var(--surface2);border:1px dashed var(--line);border-radius:12px;padding:10px 12px;margin:2px 0 12px;font-size:14px}
+.calc .row{display:flex;justify-content:space-between;gap:10px;padding:3px 0}
+.calc .row small{color:var(--muted);display:block;font-size:12px}
+.calc .total{border-top:1px solid var(--line);margin-top:4px;padding-top:7px;font-weight:600}
+.night{display:inline-block;background:var(--night-soft);color:var(--night);border-radius:6px;padding:0 6px;font-size:12px;font-weight:600;margin-left:4px}
+.tag{display:inline-block;background:var(--surface2);border:1px solid var(--line);border-radius:6px;padding:0 6px;font-size:12px;margin-left:4px;color:var(--muted)}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;min-width:0;display:flex;flex-direction:column;justify-content:flex-start}
+.stat span{font-size:12px;color:var(--muted);display:block}
+.stat strong{font-size:18px;font-variant-numeric:tabular-nums}
+.stat small{font-size:11.5px;color:var(--muted);display:block}
+.stat.big{grid-column:1/-1;background:var(--accent-soft);border-color:transparent}
+.stat.big strong{font-size:24px}
+.toolbar{display:flex;justify-content:space-between;align-items:center;margin:0 2px 8px;font-size:13px;color:var(--muted)}
+.day{font-size:12.5px;color:var(--muted);margin:14px 4px 6px;font-weight:600}
+.item{display:grid;grid-template-columns:minmax(0,1fr) auto auto;column-gap:8px;row-gap:2px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 6px 10px 12px;margin-bottom:6px}
+.item .title{grid-column:1;grid-row:1;font-weight:600;min-width:0;overflow-wrap:anywhere}
+.item .amt{grid-column:2;grid-row:1;font-weight:700;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.item .del{grid-column:3;grid-row:1}
+.item .meta{grid-column:1/3;font-size:12.5px;color:var(--muted);min-width:0;overflow-wrap:anywhere}
+.item .split{grid-column:1/3;display:flex;flex-wrap:wrap;gap:2px 12px;font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.item .split b{color:var(--text);font-weight:600}
+.inc{color:var(--income)} .exp{color:var(--expense)}
+.del{border:0;background:transparent;color:var(--muted);font-size:18px;width:32px;height:32px;border-radius:8px;cursor:pointer;flex:none}
+.del:hover{background:var(--surface2);color:var(--expense)}
+.empty{text-align:center;color:var(--muted);padding:26px 10px;font-size:14px}
+details.pay{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:8px}
+details.pay summary{list-style:none;cursor:pointer;padding:12px 14px;display:flex;justify-content:space-between;gap:10px;align-items:center}
+details.pay summary::-webkit-details-marker{display:none}
+details.pay summary .who b{font-size:16px}
+details.pay summary .who small{display:block;color:var(--muted);font-size:12px}
+details.pay summary .owe{text-align:right}
+details.pay summary .owe b{font-size:18px;font-variant-numeric:tabular-nums}
+details.pay summary .owe small{display:block;color:var(--muted);font-size:11.5px}
+details.pay .inner{padding:0 10px 10px}
+details.pay .inner .item{background:var(--surface2)}
+.editrow{display:grid;gap:8px;align-items:end;padding:8px 0;border-bottom:1px solid var(--line)}
+.editrow:last-of-type{border-bottom:0}
+.editrow label{margin:0}
+.techrow{grid-template-columns:1.4fr .9fr .9fr auto auto}
+.itemrow{grid-template-columns:1.6fr .8fr .9fr auto}
+.discrow{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) auto}
+.editrow .chk{display:flex;flex-direction:column;align-items:center;font-size:12px}
+.editrow .chk input{width:22px;height:22px;margin:16px 0 12px}
+.editrow .del{height:46px}
+.taglist{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 8px}
+.taglist span{display:inline-flex;align-items:center;gap:2px;border:1px solid var(--line);background:var(--surface2);border-radius:999px;padding:4px 4px 4px 11px;font-size:13px}
+.taglist span.sys{padding-right:11px;color:var(--muted)}
+.taglist button{border:0;background:transparent;color:var(--muted);cursor:pointer;width:24px;height:24px;border-radius:50%}
+.addline{display:flex;gap:6px}
+.addline input{margin:0}
+.addline button{flex:none}
+.savebar{position:sticky;bottom:calc(70px + env(safe-area-inset-bottom));z-index:3;margin:0 0 12px}
+.savebar .primary{box-shadow:0 6px 18px rgba(0,0,0,.18)}
+.savebar.clean .primary{opacity:.55}
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:6;display:flex;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+.tabbar button{flex:1;border:0;background:transparent;padding:9px 4px 10px;font-size:12px;color:var(--muted);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
+.tabbar button svg{width:22px;height:22px}
+.tabbar button.on{color:var(--accent);font-weight:600}
+.toast{position:fixed;left:50%;bottom:calc(86px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--text);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;max-width:calc(100% - 32px);z-index:20;text-align:center}
+.toast.show{opacity:1}
+.lock{position:fixed;inset:0;z-index:30;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:16px}
+.lock[hidden]{display:none}
+.lock .card{width:100%;max-width:360px}
+.lock h2{margin:0 0 6px;font-size:18px}
+.modal{position:fixed;inset:0;z-index:40;background:var(--scrim);display:flex;align-items:flex-end;justify-content:center;padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+.modal .card{width:100%;max-width:420px;margin:0}
+.modal p{margin:0 0 14px;white-space:pre-line;font-size:15px}
+.modal .btns{display:flex;gap:8px}
+.modal .btns button{flex:1;margin:0}
+.danger{background:var(--expense)}
+.tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -14px;padding:0 14px 2px}
+.rtable{border-collapse:collapse;width:100%;font-size:13.5px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.rtable th,.rtable td{padding:9px 10px;text-align:right;border-bottom:1px solid var(--line)}
+.rtable th:first-child,.rtable td:first-child{text-align:left;position:sticky;left:0;background:var(--surface);padding-left:0;z-index:1}
+.rtable thead th{font-size:12px;color:var(--muted);font-weight:600}
+.rtable tr.sum td{font-weight:700;background:var(--surface2)}
+.rtable tr.sum td:first-child{padding-left:8px}
+.rtable tbody tr:last-child td{border-bottom:0}
+.mbtn{border:0;background:none;color:var(--accent);font:inherit;font-weight:600;padding:4px 0;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.catgroup{margin-bottom:16px}
+.cathead{display:flex;justify-content:space-between;align-items:baseline;font-weight:600;padding-bottom:6px;border-bottom:1px solid var(--line);margin-bottom:8px}
+.cathead b{font-size:17px;font-variant-numeric:tabular-nums}
+.catrow{padding:6px 0}
+.catline{display:flex;justify-content:space-between;gap:10px;font-size:14px}
+.catline span:first-child{min-width:0;overflow-wrap:anywhere}
+.catline b{font-variant-numeric:tabular-nums}
+.catline small{color:var(--muted);font-size:12px;margin-left:6px;display:inline-block;min-width:34px;text-align:right}
+.bar{height:6px;border-radius:3px;background:var(--surface2);margin-top:5px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:3px}
+.netline{display:flex;justify-content:space-between;align-items:baseline;background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-weight:600}
+.netline b{font-size:20px;font-variant-numeric:tabular-nums}
+.warnbox{background:var(--surface2);border-left:3px solid var(--warn);border-radius:8px;padding:8px 10px;font-size:13px;margin-bottom:12px}
+@media (max-width:420px){
+  .techrow{grid-template-columns:1fr 1fr auto auto;}
+  .techrow .name{grid-column:1/-1}
+  .itemrow{grid-template-columns:1fr 1fr auto}
+  .itemrow .name{grid-column:1/-1}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div><h1 id="shopName">按摩工作室記帳本</h1><p>服務抽成・收支・技師結算</p></div>
+  <button id="syncBadge" class="badge" type="button">僅存本機</button>
+</header>
+
+<main>
+  <!-- 記帳 -->
+  <section id="tab-add" class="tab active">
+    <div class="seg" id="modeSeg">
+      <button type="button" data-mode="service" class="on">記服務</button>
+      <button type="button" data-mode="entry">一般收支</button>
+      <button type="button" data-mode="bill">帳單分攤</button>
+    </div>
+
+    <form id="svcForm" class="card" autocomplete="off">
+      <div id="noTechWarn" class="warnbox" hidden>還沒有技師，請先到「設定」新增技師和抽成%。</div>
+      <div class="grid2">
+        <label>日期<input type="date" id="sDate" required></label>
+        <label>技師<select id="sTech" required></select></label>
+      </div>
+      <label>項目<select id="sItem"></select></label>
+      <label style="margin-bottom:6px">折扣</label>
+      <div class="chips" id="discChips"></div>
+      <div class="grid2">
+        <label>原價<input id="sPrice" type="number" inputmode="numeric" min="0" step="1" required></label>
+        <label>自訂折扣（幾折）<input id="sDisc" type="text" inputmode="decimal" placeholder="例如 88" autocomplete="off"></label>
+      </div>
+      <label>實收<input id="sPaid" type="number" inputmode="numeric" min="0" step="1" required></label>
+      <p class="hint" id="discHint" style="margin-top:-4px"></p>
+      <div class="grid2">
+        <label>結束時間<input id="sEnd" type="time" required></label>
+        <label>付款方式<select id="sPay"></select></label>
+      </div>
+      <label>備註<input id="sNote" placeholder="例如：加強肩頸"></label>
+      <div id="calc" class="calc"></div>
+      <button class="primary" type="submit">記一筆服務</button>
+    </form>
+
+    <form id="entForm" class="card" autocomplete="off" hidden>
+      <div class="seg" id="eTypeSeg">
+        <button type="button" data-type="expense" class="on">支出</button>
+        <button type="button" data-type="income">收入</button>
+      </div>
+      <div class="grid2">
+        <label>日期<input type="date" id="eDate" required></label>
+        <label>分類<select id="eCat"></select></label>
+      </div>
+      <div class="grid2">
+        <label>金額<input id="eAmt" type="number" inputmode="numeric" min="1" step="1" required></label>
+        <label>付款方式<select id="ePay"></select></label>
+      </div>
+      <label>備註<input id="eNote" placeholder="例如：11月房租"></label>
+      <button class="primary" type="submit">記一筆</button>
+    </form>
+
+    <form id="billForm" class="card" autocomplete="off" hidden>
+      <p class="hint" style="margin-top:0" id="billHint"></p>
+      <div class="seg" id="bCatSeg">
+        <button type="button" data-cat="電費" class="on">電費</button>
+        <button type="button" data-cat="水費">水費</button>
+        <button type="button" data-cat="房租">房租</button>
+      </div>
+      <label>帳單金額<input id="bAmt" type="number" inputmode="numeric" min="1" step="1" required></label>
+      <div class="grid2">
+        <label>帳單第一個月<input id="bStart" type="month" required></label>
+        <label>涵蓋幾個月<select id="bMonths"><option value="1">1 個月（月繳）</option><option value="2" selected>2 個月</option><option value="3">3 個月（季繳）</option><option value="6">6 個月（半年繳）</option><option value="12">12 個月（年繳）</option></select></label>
+      </div>
+      <div class="grid2">
+        <label>付款方式<select id="bPay"></select></label>
+        <label>備註<input id="bNote" placeholder="例如：電號尾碼 1234"></label>
+      </div>
+      <div id="billCalc" class="calc"></div>
+      <button class="primary" type="submit">記這張帳單</button>
+    </form>
+
+    <div class="toolbar"><span>最近記的</span></div>
+    <div id="recent"></div>
+  </section>
+
+  <!-- 明細 -->
+  <section id="tab-list" class="tab">
+    <div class="card filters">
+      <label class="wide">月份<input type="month" id="fMonth"></label>
+      <label>技師<select id="fTech"></select></label>
+      <label>類型<select id="fKind">
+        <option value="">全部</option><option value="service">服務</option>
+        <option value="income">一般收入</option><option value="expense">一般支出</option>
+      </select></label>
+    </div>
+    <div class="stats" id="stats"></div>
+    <div class="toolbar"><span id="listCount"></span><button id="exportCsv" class="ghost" type="button">匯出 CSV</button></div>
+    <div id="list"></div>
+  </section>
+
+  <!-- 報表 -->
+  <section id="tab-report" class="tab">
+    <div class="card">
+      <h3>累計統計</h3>
+      <p class="hint" id="cumHint" style="margin-top:-4px"></p>
+      <div class="stats" id="cumStats" style="margin-bottom:0"></div>
+    </div>
+    <div class="card">
+      <h3>月統計</h3>
+      <div class="seg" id="rRangeSeg">
+        <button type="button" data-r="6" class="on">近 6 個月</button>
+        <button type="button" data-r="12">近 12 個月</button>
+        <button type="button" data-r="0">全部</button>
+      </div>
+      <div class="tablewrap"><table class="rtable" id="monthTable"></table></div>
+      <p class="hint" style="margin-bottom:0">營業收入是服務的實收；其他支出包含房租、水電分攤等。表格可以左右滑動，點月份可看那個月的分類報表。</p>
+    </div>
+    <div class="card" id="catCard">
+      <h3>分類報表</h3>
+      <label>期間<select id="rPeriod"></select></label>
+      <div id="catReport"></div>
+    </div>
+    <div class="card">
+      <h3>折扣統計</h3>
+      <p class="hint" style="margin-top:-4px" id="discPeriod"></p>
+      <div id="discReport"></div>
+    </div>
+  </section>
+
+  <!-- 技師結算 -->
+  <section id="tab-pay" class="tab">
+    <div class="card">
+      <div class="seg" id="payModeSeg">
+        <button type="button" data-pm="day" class="on">日結</button>
+        <button type="button" data-pm="month">月結</button>
+      </div>
+      <label id="payDayWrap">日期<input type="date" id="pDay"></label>
+      <label id="payMonthWrap" hidden>月份<input type="month" id="pMonth"></label>
+    </div>
+    <div class="stats" id="payStats"></div>
+    <div id="payList"></div>
+  </section>
+
+  <!-- 設定 -->
+  <section id="tab-set" class="tab">
+    <div class="card">
+      <h3>技師</h3>
+      <p class="hint">抽成一律照「原價」計算，打折不影響技師。服務結束時間過了夜間開始時間，整筆改用「過12點%」。</p>
+      <div id="techEdit"></div>
+      <button type="button" class="ghost" id="addTech">＋ 新增技師</button>
+    </div>
+    <div class="card">
+      <h3>服務項目</h3>
+      <div id="itemEdit"></div>
+      <button type="button" class="ghost" id="addItem">＋ 新增項目</button>
+    </div>
+    <div class="card">
+      <h3>常用折扣</h3>
+      <p class="hint">設好的折扣會變成記服務時的按鈕，紀錄上會留下折扣原因，報表會統計每種折扣讓了多少錢。「幾折」填 9、85 這樣的數字。</p>
+      <div id="discEdit"></div>
+      <button type="button" class="ghost" id="addDisc">＋ 新增折扣</button>
+    </div>
+    <div class="card">
+      <h3>過12點時段</h3>
+      <div class="grid2">
+        <label>開始<input type="time" id="setNightStart"></label>
+        <label>結束<input type="time" id="setNightEnd"></label>
+      </div>
+      <p class="hint">服務的結束時間在這段時間內，就用技師的「過12點%」。結束時間剛好 00:00 不算。另外，在結束時間之前記帳，日期會預設成前一天（營業日）。</p>
+    </div>
+    <div class="card">
+      <h3>收支分類與付款方式</h3>
+      <div id="catEdit"></div>
+    </div>
+    <div class="card">
+      <h3>其他</h3>
+      <label>店名（顯示在最上方）<input id="setShop"></label>
+    </div>
+    <div class="savebar clean" id="saveBar"><button type="button" class="primary" id="saveSettings">儲存設定</button></div>
+    <div class="card">
+      <h3>同步</h3>
+      <p class="hint" id="syncInfo"></p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button type="button" class="ghost" id="syncNow">立即同步</button>
+        <button type="button" class="ghost" id="logout">清除這台裝置的密碼</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<nav class="tabbar">
+  <button type="button" data-tab="add" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>記帳</button>
+  <button type="button" data-tab="list"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg>明細</button>
+  <button type="button" data-tab="report"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 20h16"/><path d="M7 16v-5M12 16V6M17 16v-8"/></svg>報表</button>
+  <button type="button" data-tab="pay"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"/><path d="M17 6v8M14.5 8.5c0-1 1-1.6 2.5-1.6s2.5.6 2.5 1.5c0 2-5 1-5 3 0 .9 1 1.6 2.5 1.6s2.5-.6 2.5-1.6"/></svg>技師結算</button>
+  <button type="button" data-tab="set"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>設定</button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<div class="modal" id="confirmBox" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="confirmMsg">
+    <p id="confirmMsg"></p>
+    <div class="btns"><button type="button" class="ghost" id="confirmNo">取消</button><button type="button" class="primary danger" id="confirmYes">確定</button></div>
+  </div>
+</div>
+
+<div class="lock" id="lock" hidden>
+  <form class="card" id="lockForm">
+    <h2>按摩工作室記帳本</h2>
+    <p class="hint" id="lockMsg">請輸入共用密碼。輸入一次後，這台裝置會記住。</p>
+    <label>密碼<input id="lockInput" type="password" autocomplete="current-password" required></label>
+    <button class="primary" type="submit">進入</button>
+  </form>
+</div>
+
+<script>
+"use strict";
+/* 留空 = 資料只存在這台裝置；貼上 Google Apps Script 的網址（結尾是 /exec）後才會同步到試算表 */
+const SHEETS_API_URL = "";
+
+const LS = { data: "massage-ledger-data", pending: "massage-ledger-pending", pass: "massage-ledger-passcode" };
+const SYS = { income: "按摩收入", expense: "技師抽成" };
+const BILL_CATS = ["電費", "水費", "房租"]; // 只在「帳單分攤」使用
+const DEFAULT_SETTINGS = {
+  shopName: "按摩工作室記帳本",
+  incomeCats: [SYS.income, "其他收入"],
+  expenseCats: [SYS.expense, "房租", "電費", "水費", "耗材", "毛巾洗衣", "其他"],
+  payMethods: ["現金", "刷卡", "轉帳", "行動支付"],
+  nightStart: "00:00", nightEnd: "06:00"
+};
+const DEFAULT_ITEMS = [{ name: "全身按摩", minutes: 60, price: 1000 }];
+
+/* ---------- 小工具 ---------- */
+const $ = id => document.getElementById(id);
+const pad = n => String(n).padStart(2, "0");
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const money = n => (n < 0 ? "-" : "") + "$" + Math.abs(Math.round(n || 0)).toLocaleString("en-US");
+const uid = () => (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2);
+const toMin = t => { const m = /^(\d{1,2}):(\d{2})/.exec(t || ""); return m ? (+m[1]) * 60 + (+m[2]) : null; };
+const dateStr = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const clone = o => JSON.parse(JSON.stringify(o));
+const lsGet = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+const lsSet = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} };
+// 頁面內的確認視窗（取代瀏覽器的 confirm）
+function askConfirm(msg, yesText) {
+  return new Promise(resolve => {
+    const box = $("confirmBox");
+    $("confirmMsg").textContent = msg; $("confirmYes").textContent = yesText || "確定";
+    box.hidden = false; $("confirmNo").focus();
+    const done = v => { box.hidden = true; $("confirmYes").onclick = $("confirmNo").onclick = box.onclick = null; resolve(v); };
+    $("confirmYes").onclick = () => done(true); $("confirmNo").onclick = () => done(false);
+    box.onclick = e => { if (e.target === box) done(false); };
+  });
+}
+let toastTimer;
+function toast(msg) { const t = $("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 2400); }
+
+/* ---------- 計算規則（和 Code.gs 相同） ---------- */
+// 結束時間落在夜間時段（不含開始那一刻，例如剛好 00:00 結束不算）
+function isNight(end, s) {
+  const t = toMin(end), a = toMin(s.nightStart), b = toMin(s.nightEnd);
+  if (t == null || a == null || b == null || a === b) return false;
+  return a < b ? (t > a && t < b) : (t > a || t < b);
+}
+function derive(r) {
+  const techCut = Math.round((r.price || 0) * (r.rate || 0) / 100);
+  return Object.assign({}, r, { techCut, company: (r.paid || 0) - techCut });
+}
+function rateFor(techName, end) {
+  const t = state.technicians.find(x => x.name === techName);
+  const night = isNight(end, state.settings);
+  if (!t) return { rate: 0, night };
+  return { rate: night ? t.nightRate : t.rate, night };
+}
+function discLabel(price, paid) {
+  if (!price || paid >= price) return "";
+  const p = Math.round(paid / price * 100);
+  if (Math.abs(paid - price * p / 100) < 0.5 && p > 0) return (p % 10 === 0 ? p / 10 : p) + "折";
+  return "折" + money(price - paid);
+}
+function businessDate() {
+  const now = new Date(), end = toMin(state.settings.nightEnd);
+  const cur = now.getHours() * 60 + now.getMinutes();
+  // 過了午夜、還沒到過12點時段的結束時間 → 算前一天的營業日
+  if (end != null && end <= 720 && cur < end) now.setDate(now.getDate() - 1);
+  return dateStr(now);
+}
+function nowTime() { const d = new Date(); return pad(d.getHours()) + ":" + pad(Math.floor(d.getMinutes() / 5) * 5); }
+
+/* ---------- 資料 ---------- */
+function normalizeData(d) {
+  d = d || {};
+  const s = Object.assign({}, DEFAULT_SETTINGS, d.settings || {});
+  ["incomeCats", "expenseCats", "payMethods"].forEach(k => { if (!Array.isArray(s[k]) || !s[k].length) s[k] = DEFAULT_SETTINGS[k].slice(); });
+  if (!s.incomeCats.includes(SYS.income)) s.incomeCats.unshift(SYS.income);
+  if (!s.expenseCats.includes(SYS.expense)) s.expenseCats.unshift(SYS.expense);
+  BILL_CATS.forEach(c => { if (!s.expenseCats.includes(c)) s.expenseCats.push(c); });
+  return {
+    settings: s,
+    technicians: (Array.isArray(d.technicians) ? d.technicians : []).map(t => ({ name: String(t.name || ""), rate: +t.rate || 0, nightRate: t.nightRate === "" || t.nightRate == null ? (+t.rate || 0) : +t.nightRate, active: t.active !== false })),
+    discounts: (Array.isArray(d.discounts) ? d.discounts : []).map(x => ({ name: String(x.name || ""), pct: Math.round(+x.pct || 0) })).filter(x => x.name && x.pct > 0 && x.pct < 100),
+    items: Array.isArray(d.items) ? d.items.map(i => ({ name: String(i.name || ""), minutes: +i.minutes || 0, price: +i.price || 0 })) : DEFAULT_ITEMS.map(i => Object.assign({}, i)),
+    services: (Array.isArray(d.services) ? d.services : []).map(r => derive(Object.assign({}, r, { price: +r.price || 0, paid: +r.paid || 0, rate: +r.rate || 0, night: !!r.night }))),
+    entries: (Array.isArray(d.entries) ? d.entries : []).map(r => Object.assign({}, r, { amount: +r.amount || 0 })),
+    version: d.version || ""
+  };
+}
+function upsert(arr, rec) { const i = arr.findIndex(x => x.id === rec.id); if (i >= 0) arr[i] = rec; else arr.push(rec); }
+function applyOp(st, op) {
+  if (op.op === "addService") upsert(st.services, derive(op.rec));
+  else if (op.op === "addEntry") upsert(st.entries, op.rec);
+  else if (op.op === "del") { const arr = op.kind === "service" ? st.services : st.entries; const i = arr.findIndex(x => x.id === op.id); if (i >= 0) arr.splice(i, 1); }
+  else if (op.op === "settings") { const n = normalizeData({ settings: op.settings, technicians: op.technicians, items: op.items, discounts: op.discounts }); st.discounts = n.discounts; st.settings = n.settings; st.technicians = n.technicians; st.items = n.items; }
+}
+
+const DEMO_SEED = null; // 範本版會放範例資料
+let state = (() => { try { const raw = lsGet(LS.data); if (raw) return normalizeData(JSON.parse(raw)); } catch (e) {} return normalizeData(DEMO_SEED ? DEMO_SEED() : {}); })();
+let pending = (() => { try { return JSON.parse(lsGet(LS.pending) || "[]"); } catch (e) { return []; } })();
+function persist() { lsSet(LS.data, JSON.stringify(state)); lsSet(LS.pending, JSON.stringify(pending)); }
+function commit(ops) { [].concat(ops).forEach(op => { applyOp(state, op); pending.push(op); }); persist(); renderAll(); sync(); }
+
+/* ---------- 同步 ---------- */
+let syncing = false, again = false, retryTimer = null, lastError = "", lastSyncAt = 0;
+const getPass = () => lsGet(LS.pass) || "";
+async function api(body) {
+  const res = await fetch(SHEETS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(Object.assign({}, body, { passcode: getPass() })) });
+  let j; try { j = await res.json(); } catch (e) { throw Object.assign(new Error("回應格式錯誤"), { code: "bad_response" }); }
+  if (!j.ok) throw Object.assign(new Error(j.error || "error"), { code: j.error });
+  return j;
+}
+function setStatus() {
+  const b = $("syncBadge");
+  let cls = "", text = "僅存本機";
+  if (SHEETS_API_URL) {
+    if (syncing) { cls = "syncing"; text = "同步中…"; }
+    else if (lastError) { cls = "error"; text = pending.length ? `同步失敗・${pending.length} 筆待上傳` : "同步失敗"; }
+    else if (pending.length) { cls = "pending"; text = `待上傳 ${pending.length} 筆`; }
+    else { cls = "ok"; text = "已同步"; }
+  }
+  b.className = "badge " + cls; b.textContent = text;
+  const info = !SHEETS_API_URL ? "還沒有設定試算表網址，資料只存在這台裝置。"
+    : lastError ? `最後一次同步失敗：${lastError}。資料已先存在這台裝置，會自動重試。`
+    : lastSyncAt ? `最後同步：${new Date(lastSyncAt).toLocaleTimeString("zh-TW", { hour: "2-digit", minute: "2-digit" })}。其他裝置或試算表的修改，約 30 秒內會出現。` : "準備同步…";
+  $("syncInfo").textContent = info;
+}
+const ERR_TEXT = { passcode_not_set: "Code.gs 裡的密碼還沒改", wrong_passcode: "密碼錯誤", bad_response: "試算表網址可能不對" };
+async function sync() {
+  if (!SHEETS_API_URL) { setStatus(); return; }
+  if (!getPass()) { showLock(); return; }
+  if (syncing) { again = true; return; }
+  syncing = true; again = false; setStatus();
+  const sent = pending.slice();
+  try {
+    const j = sent.length ? await api({ action: "sync", ops: sent }) : await api({ action: "load" });
+    pending = pending.slice(sent.length);
+    const keepDraft = settingsDirty;
+    state = normalizeData(Object.assign({}, j.data, { version: j.version }));
+    pending.forEach(op => applyOp(state, op));
+    lastError = ""; lastSyncAt = Date.now();
+    persist(); renderAll(keepDraft);
+  } catch (e) {
+    lastError = ERR_TEXT[e.code] || (navigator.onLine === false ? "沒有網路" : (e.message || "連線失敗"));
+    if (e.code === "wrong_passcode") { lsSet(LS.pass, null); showLock("密碼錯誤，請重新輸入。"); }
+    else { clearTimeout(retryTimer); retryTimer = setTimeout(sync, 20000); }
+  } finally {
+    syncing = false; setStatus();
+    if (again || (pending.length && !lastError)) setTimeout(sync, 50);
+  }
+}
+async function checkVersion() {
+  if (!SHEETS_API_URL || !getPass() || syncing || document.hidden) return;
+  if (pending.length || lastError) return sync();
+  try { const j = await api({ action: "version" }); if (String(j.version) !== String(state.version)) sync(); } catch (e) {}
+}
+function showLock(msg) { $("lockMsg").textContent = msg || "請輸入共用密碼。輸入一次後，這台裝置會記住。"; $("lock").hidden = false; setTimeout(() => $("lockInput").focus(), 50); }
+$("lockForm").addEventListener("submit", e => { e.preventDefault(); lsSet(LS.pass, $("lockInput").value.trim()); $("lockInput").value = ""; $("lock").hidden = true; sync(); });
+$("syncBadge").addEventListener("click", () => SHEETS_API_URL ? sync() : toast("還沒設定試算表網址，資料只存在這台裝置"));
+$("syncNow").addEventListener("click", () => SHEETS_API_URL ? sync() : toast("還沒設定試算表網址"));
+$("logout").addEventListener("click", async () => { if (!(await askConfirm("清除這台裝置記住的密碼？下次開啟需要重新輸入。", "清除"))) return; lsSet(LS.pass, null); if (SHEETS_API_URL) showLock(); toast("已清除密碼"); });
+setInterval(checkVersion, 30000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) checkVersion(); });
+window.addEventListener("online", () => sync());
+
+/* ---------- 分頁 ---------- */
+document.querySelectorAll(".tabbar button").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll(".tabbar button").forEach(x => x.classList.toggle("on", x === b));
+  document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.id === "tab-" + b.dataset.tab));
+  if (b.dataset.tab === "set" && !settingsDirty) loadDraft();
+  window.scrollTo(0, 0);
+}));
+let mode = "service";
+$("modeSeg").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  mode = b.dataset.mode;
+  $("modeSeg").querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
+  $("svcForm").hidden = mode !== "service"; $("entForm").hidden = mode !== "entry"; $("billForm").hidden = mode !== "bill";
+});
+
+/* ---------- 記服務 ---------- */
+let discount = 1, discName = "", endTouched = false;
+const discText = pct => String(pct % 10 === 0 ? pct / 10 : pct);   // 90 → "9"、85 → "85"
+function fillSelect(sel, options, keep) {
+  const cur = keep !== undefined ? keep : sel.value;
+  sel.innerHTML = options.map(o => `<option value="${esc(o.value)}">${esc(o.label)}</option>`).join("");
+  if (options.some(o => o.value === cur)) sel.value = cur;
+}
+function renderServiceSelects() {
+  const active = state.technicians.filter(t => t.active && t.name);
+  const cur = $("sTech").value;
+  const opts = active.map(t => ({ value: t.name, label: `${t.name}　${t.rate}%／${t.nightRate}%` }));
+  fillSelect($("sTech"), [{ value: "", label: active.length ? "請選擇技師" : "尚無技師" }].concat(opts), cur);
+  $("noTechWarn").hidden = active.length > 0;
+  const curItem = $("sItem").value;
+  const items = state.items.filter(i => i.name).map((i, n) => ({ value: String(n), label: `${i.name}・${i.minutes ? i.minutes + "分・" : ""}${money(i.price)}` }));
+  fillSelect($("sItem"), items.concat([{ value: "custom", label: "其他（自己填原價）" }]), curItem || (items[0] ? "0" : "custom"));
+  fillSelect($("sPay"), state.settings.payMethods.map(p => ({ value: p, label: p })));
+}
+function currentItem() { const v = $("sItem").value; return v === "custom" ? null : state.items[+v] || null; }
+function applyDiscount() {
+  const price = +$("sPrice").value || 0;
+  if (discount != null) $("sPaid").value = Math.round(price * discount);
+}
+function readService() {
+  const tech = $("sTech").value, end = $("sEnd").value;
+  const { rate, night } = rateFor(tech, end);
+  const item = currentItem();
+  const price = Math.max(0, Math.round(+$("sPrice").value || 0)), paid = Math.max(0, Math.round(+$("sPaid").value || 0));
+  return derive({
+    date: $("sDate").value, end, tech, item: item ? item.name : "其他", price, paid,
+    pay: $("sPay").value, rate, night, note: $("sNote").value.trim(),
+    discName: paid < price ? (discName || "自訂") : ""   // 折扣原因：常用折扣的名稱，或「自訂」
+  });
+}
+function renderCalc() {
+  const r = readService();
+  if (!r.tech) { $("calc").innerHTML = `<div class="hint" style="margin:0">選好技師後，這裡會算出技師抽成和公司實得。</div>`; return; }
+  const disc = discLabel(r.price, r.paid) && (r.discName && r.discName !== "自訂" ? `${r.discName} ` : "") + discLabel(r.price, r.paid);
+  $("calc").innerHTML = `
+    <div class="row"><div>技師抽成${r.night ? '<span class="night">過12點</span>' : ""}<small>原價 ${money(r.price)} × ${r.rate}%${disc ? "（打折不影響）" : ""}</small></div><b>${money(r.techCut)}</b></div>
+    <div class="row total"><div>公司實得<small>實收 ${money(r.paid)}${disc ? "（" + disc + "）" : ""} − 技師 ${money(r.techCut)}</small></div><b class="${r.company < 0 ? "exp" : "inc"}">${money(r.company)}</b></div>`;
+}
+function resetService(keep) {
+  if (!keep) $("sDate").value = businessDate();
+  $("sEnd").value = nowTime(); endTouched = false;
+  const item = currentItem();
+  $("sPrice").value = item ? item.price : "";
+  discount = 1; discName = ""; $("sDisc").value = ""; showDiscHint(); applyDiscount(); markChips();
+  $("sNote").value = "";
+  renderCalc();
+}
+$("sItem").addEventListener("change", () => { const it = currentItem(); if (it) $("sPrice").value = it.price; applyDiscount(); renderCalc(); explainDisc(); });
+$("sPrice").addEventListener("input", () => { applyDiscount(); renderCalc(); explainDisc(); });
+$("sPaid").addEventListener("input", () => { discount = null; discName = ""; $("sDisc").value = ""; markChips(); showDiscHint("已直接修改實收，不套用折扣。"); renderCalc(); });
+function renderDiscChips() {
+  $("discChips").innerHTML = `<button type="button" class="chip" data-pct="100" data-name="">不打折</button>` +
+    state.discounts.map(d => `<button type="button" class="chip" data-pct="${d.pct}" data-name="${esc(d.name)}">${esc(d.name)} ${discText(d.pct)}折</button>`).join("");
+  markChips();
+}
+function markChips() {
+  $("discChips").querySelectorAll(".chip").forEach(c => c.classList.toggle("on", discount != null &&
+    (c.dataset.name ? c.dataset.name === discName && +c.dataset.pct / 100 === discount : discount === 1 && !discName)));
+}
+$("discChips").addEventListener("click", e => {
+  const c = e.target.closest(".chip"); if (!c) return;
+  const pct = +c.dataset.pct;
+  discount = pct / 100; discName = c.dataset.name;
+  $("sDisc").value = pct < 100 ? discText(pct) : "";
+  applyDiscount(); markChips(); renderCalc(); explainDisc();
+});
+// 「9」→ 9 折、「85」或「8.5」→ 85 折、「75」→ 75 折；留空 = 不打折；看不懂的回傳 null
+function parseDisc(v) {
+  v = String(v || "").trim().replace(/折$/, "");
+  if (!v) return 1;
+  const n = Number(v);
+  if (!isFinite(n) || n <= 0) return null;
+  if (n < 10) return n / 10;
+  if (n === 10 || n === 100) return 1;
+  if (n < 100) return n / 100;
+  return null;
+}
+function showDiscHint(text, bad) {
+  const h = $("discHint");
+  h.textContent = text || "點上面的常用折扣，或在「自訂折扣」填幾折（例如 88），實收會自動算；也可以直接改實收。";
+  h.style.color = bad ? "var(--expense)" : "";
+}
+$("sDisc").addEventListener("input", onDiscInput);
+function onDiscInput() {
+  const f = parseDisc($("sDisc").value);
+  if (f == null) { showDiscHint("看不懂這個折扣，請填 1～99 的數字，例如 9 或 85。", true); return; }
+  // 自己填的數字跟按下的常用折扣一樣時，保留那個折扣的名稱
+  if (!(discName && Math.abs(f - discount) < 1e-9)) discName = f < 1 ? "自訂" : "";
+  discount = f; applyDiscount(); markChips(); renderCalc(); explainDisc();
+}
+function explainDisc() {
+  const f = discount;
+  if (f == null || f === 1) return showDiscHint();
+  const label = (discName && discName !== "自訂" ? discName + " " : "") + discLabel(100, Math.round(f * 100));
+  showDiscHint(`${label}：原價 ${money(+$("sPrice").value || 0)} × ${Math.round(f * 1000) / 10}% = 實收 ${money(+$("sPaid").value || 0)}`);
+}
+["sTech", "sEnd", "sDate"].forEach(id => $(id).addEventListener("input", () => { if (id === "sEnd") endTouched = true; renderCalc(); }));
+$("sTech").addEventListener("change", renderCalc);
+$("svcForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const r = readService();
+  if (!r.tech) return toast("請選擇技師");
+  if (!r.date || !r.end) return toast("請填日期和結束時間");
+  if (r.paid > r.price && !(await askConfirm(`實收 ${money(r.paid)} 比原價 ${money(r.price)} 還多，確定要記嗎？`, "記帳"))) return;
+  const rec = Object.assign(r, { id: uid(), created: Date.now() });
+  commit({ op: "addService", rec });
+  toast(`已記帳：${r.tech} ${money(r.techCut)}／公司 ${money(r.company)}`);
+  resetService(true);
+});
+
+/* ---------- 一般收支 ---------- */
+let eType = "expense";
+function renderEntrySelects() {
+  const cats = eType === "income" ? state.settings.incomeCats : state.settings.expenseCats.filter(c => !BILL_CATS.includes(c));
+  fillSelect($("eCat"), cats.map(c => ({ value: c, label: c })));
+  fillSelect($("ePay"), state.settings.payMethods.map(p => ({ value: p, label: p })));
+}
+$("eTypeSeg").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  eType = b.dataset.type;
+  $("eTypeSeg").querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
+  renderEntrySelects();
+});
+$("entForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const amount = Math.round(+$("eAmt").value || 0);
+  if (amount <= 0) return toast("請填金額");
+  if (!$("eDate").value) return toast("請填日期");
+  const rec = { id: uid(), created: Date.now(), date: $("eDate").value, type: eType, category: $("eCat").value, amount, pay: $("ePay").value, note: $("eNote").value.trim() };
+  commit({ op: "addEntry", rec });
+  toast(`已記帳：${rec.category} ${money(amount)}`);
+  $("eAmt").value = ""; $("eNote").value = ""; $("eAmt").focus();
+});
+
+/* ---------- 帳單分攤（電費、水費、房租） ---------- */
+// 平均分攤到每個月，零頭放在最後一個月（例如 2,861 → 1,431＋1,430）
+function splitBill(total, startMonth, n) {
+  const m = /^(\d{4})-(\d{2})$/.exec(startMonth || ""); if (!m || !(total > 0) || !(n >= 1)) return [];
+  const each = Math.round(total / n), out = [];
+  for (let i = 0; i < n; i++) {
+    const d = new Date(+m[1], +m[2] - 1 + i, 1);
+    out.push({ month: `${d.getFullYear()}-${pad(d.getMonth() + 1)}`, amount: i < n - 1 ? each : total - each * (n - 1) });
+  }
+  return out;
+}
+function monthLabel(ym) { return `${+ym.slice(5, 7)}月`; }
+function billRange(parts) {
+  if (parts.length < 2) return parts[0].month;
+  const a = parts[0].month, b = parts[parts.length - 1].month;
+  return a.slice(0, 4) === b.slice(0, 4) ? `${a}～${monthLabel(b)}` : `${a}～${b}`;
+}
+// 電費、水費是繳「已經用掉的月份」；房租是預繳「接下來的月份」
+const BILL_DEFAULT = {
+  電費: { months: 2, back: true, hint: "電費常是兩個月一張單，繳的是前幾個月用的電。填帳單涵蓋的第一個月，金額會平均分攤到每個月，記在各月的 1 號。" },
+  水費: { months: 2, back: true, hint: "水費常是兩個月一張單，繳的是前幾個月用的水。填帳單涵蓋的第一個月，金額會平均分攤到每個月，記在各月的 1 號。" },
+  房租: { months: 3, back: false, hint: "房租季繳選 3 個月、年繳選 12 個月，月繳選 1 個月。從第一個月起平均分攤到每個月，記在各月的 1 號。" }
+};
+let bCat = "電費";
+function defaultBillStart() {
+  const d = new Date(); d.setDate(1);
+  if (BILL_DEFAULT[bCat].back) d.setMonth(d.getMonth() - (+$("bMonths").value || 2));
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
+}
+function setBillCat(cat) {
+  bCat = cat;
+  $("bCatSeg").querySelectorAll("button").forEach(x => x.classList.toggle("on", x.dataset.cat === cat));
+  $("bMonths").value = String(BILL_DEFAULT[cat].months);
+  $("bStart").value = defaultBillStart();
+  $("billHint").textContent = BILL_DEFAULT[cat].hint;
+  renderBillCalc();
+}
+function renderBillSelects() { fillSelect($("bPay"), state.settings.payMethods.map(p => ({ value: p, label: p }))); }
+$("bCatSeg").addEventListener("click", e => { const b = e.target.closest("button"); if (b) setBillCat(b.dataset.cat); });
+function renderBillCalc() {
+  const parts = splitBill(Math.round(+$("bAmt").value || 0), $("bStart").value, +$("bMonths").value);
+  $("billCalc").innerHTML = parts.length
+    ? parts.map(p => `<div class="row"><div>${esc(p.month)}（${monthLabel(p.month)}）</div><b>${money(p.amount)}</b></div>`).join("") +
+      `<div class="row total"><div>合計</div><b>${money(parts.reduce((s, p) => s + p.amount, 0))}</b></div>`
+    : `<div class="hint" style="margin:0">填好金額和月份，這裡會顯示每個月分到多少。</div>`;
+}
+["bAmt", "bStart", "bMonths"].forEach(id => $(id).addEventListener("input", renderBillCalc));
+$("bMonths").addEventListener("change", renderBillCalc);
+$("billForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const total = Math.round(+$("bAmt").value || 0), n = +$("bMonths").value, cat = bCat;
+  const parts = splitBill(total, $("bStart").value, n);
+  if (!parts.length) return toast("請填帳單金額和第一個月");
+  const alloc = uid(), created = Date.now(), note = $("bNote").value.trim();
+  const range = billRange(parts);
+  const kind = cat === "房租" ? ({ 1: "月繳", 3: "季繳", 6: "半年繳", 12: "年繳" }[n] || `${n}個月`) : "帳單";
+  commit(parts.map((p, i) => ({ op: "addEntry", rec: {
+    id: uid(), created: created + i, date: p.month + "-01", type: "expense", category: cat, amount: p.amount, pay: $("bPay").value,
+    note: `${cat}${kind} ${range}${parts.length > 1 ? `（${i + 1}/${parts.length}）` : ""}${note ? "・" + note : ""}`, alloc } })));
+  toast(`已記帳：${cat} ` + parts.map(p => `${monthLabel(p.month)} ${money(p.amount)}`).join("、"));
+  $("bAmt").value = ""; $("bNote").value = ""; renderBillCalc();
+});
+
+/* ---------- 列表 ---------- */
+function svcHTML(r, showDel = true) {
+  const disc = discLabel(r.price, r.paid) && (r.discName && r.discName !== "自訂" ? r.discName + " " : "") + discLabel(r.price, r.paid);
+  const meta = [r.end ? r.end + " 結束" : "", r.pay, r.note].filter(Boolean).map(esc).join("・");
+  return `<div class="item">
+    <div class="title">${esc(r.tech)}・${esc(r.item)}${r.night ? '<span class="night">過12點</span>' : ""}${disc ? `<span class="tag">${esc(disc)}</span>` : ""}</div>
+    <b class="amt inc">+${money(r.paid)}</b>
+    ${showDel ? `<button class="del" type="button" data-del="service" data-id="${esc(r.id)}" aria-label="刪除">×</button>` : ""}
+    ${meta ? `<div class="meta">${meta}</div>` : ""}
+    <div class="split"><span>技師 <b>${money(r.techCut)}</b>（${r.rate}%）</span><span>公司 <b>${money(r.company)}</b></span></div></div>`;
+}
+function entHTML(r) {
+  const inc = r.type === "income";
+  const meta = [inc ? "收入" : "支出", r.pay, r.note].filter(Boolean).map(esc).join("・");
+  return `<div class="item"><div class="title">${esc(r.category)}${r.alloc ? '<span class="tag">分攤</span>' : ""}</div>
+    <b class="amt ${inc ? "inc" : "exp"}">${inc ? "+" : "−"}${money(r.amount)}</b>
+    <button class="del" type="button" data-del="entry" data-id="${esc(r.id)}" aria-label="刪除">×</button>
+    <div class="meta">${meta}</div></div>`;
+}
+const rowHTML = x => x.k === "service" ? svcHTML(x.r) : entHTML(x.r);
+function sortRows(rows) { return rows.sort((a, b) => b.r.date.localeCompare(a.r.date) || (b.r.created || 0) - (a.r.created || 0)); }
+function renderRecent() {
+  const rows = state.services.map(r => ({ k: "service", r })).concat(state.entries.map(r => ({ k: "entry", r })))
+    .sort((a, b) => (b.r.created || 0) - (a.r.created || 0)).slice(0, 6);
+  $("recent").innerHTML = rows.length ? rows.map(rowHTML).join("") : `<div class="empty">還沒有資料，記第一筆吧。</div>`;
+}
+function filteredRows() {
+  const month = $("fMonth").value || "", tech = $("fTech").value, kind = $("fKind").value;
+  const rows = [];
+  if (!kind || kind === "service") state.services.forEach(r => { if ((r.date || "").startsWith(month) && (!tech || r.tech === tech)) rows.push({ k: "service", r }); });
+  if (!tech && kind !== "service") state.entries.forEach(r => { if ((r.date || "").startsWith(month) && (!kind || r.type === kind)) rows.push({ k: "entry", r }); });
+  return sortRows(rows);
+}
+function techNames() {
+  const names = state.technicians.map(t => t.name).filter(Boolean);
+  state.services.forEach(r => { if (r.tech && !names.includes(r.tech)) names.push(r.tech); });
+  return names;
+}
+function renderList() {
+  fillSelect($("fTech"), [{ value: "", label: "全部技師" }].concat(techNames().map(n => ({ value: n, label: n }))));
+  const rows = filteredRows();
+  let revenue = 0, cut = 0, inc = 0, exp = 0, count = 0, discSum = 0;
+  rows.forEach(({ k, r }) => {
+    if (k === "service") { revenue += r.paid; cut += r.techCut; count++; discSum += Math.max(0, r.price - r.paid); }
+    else if (r.type === "income") inc += r.amount; else exp += r.amount;
+  });
+  const net = revenue + inc - cut - exp;
+  $("stats").innerHTML = `
+    <div class="stat big"><span>淨利</span><strong class="${net < 0 ? "exp" : ""}">${money(net)}</strong><small>營業收入＋其他收入 − 技師抽成 − 其他支出</small></div>
+    <div class="stat"><span>營業收入（實收）</span><strong>${money(revenue)}</strong><small>${count} 次服務${discSum ? "・折扣 " + money(discSum) : ""}</small></div>
+    <div class="stat"><span>技師抽成</span><strong class="exp">${money(cut)}</strong></div>
+    <div class="stat"><span>其他收入</span><strong class="inc">${money(inc)}</strong></div>
+    <div class="stat"><span>其他支出</span><strong class="exp">${money(exp)}</strong></div>`;
+  $("listCount").textContent = `共 ${rows.length} 筆`;
+  let html = "", day = "";
+  rows.forEach(x => { if (x.r.date !== day) { day = x.r.date; html += `<div class="day">${esc(day)}</div>`; } html += rowHTML(x); });
+  $("list").innerHTML = html || `<div class="empty">這個條件沒有資料。</div>`;
+}
+["fMonth", "fTech", "fKind"].forEach(id => $(id).addEventListener("change", renderList));
+document.addEventListener("click", async e => {
+  const b = e.target.closest("[data-del]"); if (!b) return;
+  const kind = b.dataset.del, id = b.dataset.id;
+  const r = (kind === "service" ? state.services : state.entries).find(x => x.id === id); if (!r) return;
+  const group = kind === "entry" && r.alloc ? state.entries.filter(x => x.alloc === r.alloc).sort((a, b) => a.date.localeCompare(b.date)) : [r];
+  const desc = kind === "service" ? `${r.date} ${r.tech}・${r.item} ${money(r.paid)}`
+    : group.length > 1 ? `這張${r.category}帳單分攤成 ${group.length} 筆，會一起刪除：\n` + group.map(x => `${x.date.slice(0, 7)} ${money(x.amount)}`).join("\n")
+    : `${r.date} ${r.category} ${money(r.amount)}`;
+  if (!(await askConfirm(group.length > 1 ? desc : `確定刪除這筆？\n${desc}`, "刪除"))) return;
+  commit(group.map(x => ({ op: "del", kind, id: x.id })));
+  toast("已刪除");
+});
+$("exportCsv").addEventListener("click", () => {
+  const rows = filteredRows();
+  const out = [["日期", "種類", "技師", "項目／分類", "結束時間", "原價", "實收", "抽成%", "過12點", "技師抽成", "公司實得", "收入", "支出", "付款方式", "備註", "折扣原因"]];
+  rows.forEach(({ k, r }) => out.push(k === "service"
+    ? [r.date, "服務", r.tech, r.item, r.end, r.price, r.paid, r.rate, r.night ? "是" : "", r.techCut, r.company, r.paid, r.techCut, r.pay, r.note, r.discName || ""]
+    : [r.date, r.type === "income" ? "收入" : "支出", "", r.category, "", "", "", "", "", "", "", r.type === "income" ? r.amount : "", r.type === "expense" ? r.amount : "", r.pay, r.note]));
+  const csv = out.map(row => row.map(v => `"${String(v == null ? "" : v).replace(/"/g, '""')}"`).join(",")).join("\r\n");
+  const url = URL.createObjectURL(new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" }));
+  const a = document.createElement("a"); a.href = url; a.download = `按摩工作室明細-${$("fMonth").value || "全部"}.csv`; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+});
+
+/* ---------- 報表 ---------- */
+let reportRange = 6;
+function monthStats() {
+  const m = new Map(), get = k => m.get(k) || (m.set(k, { count: 0, revenue: 0, cut: 0, inc: 0, exp: 0, discount: 0 }), m.get(k));
+  state.services.forEach(r => { const x = get(r.date.slice(0, 7)); x.count++; x.revenue += r.paid; x.cut += r.techCut; x.discount += Math.max(0, r.price - r.paid); });
+  state.entries.forEach(r => { const x = get(r.date.slice(0, 7)); if (r.type === "income") x.inc += r.amount; else x.exp += r.amount; });
+  return [...m.entries()].sort((a, b) => b[0].localeCompare(a[0]));
+}
+const netOf = x => x.revenue + x.inc - x.cut - x.exp;
+function renderReport() {
+  const all = monthStats();
+  // 月統計：從最近有資料的月份往回數
+  const rows = reportRange ? all.slice(0, reportRange) : all;
+  const sum = rows.reduce((t, [, x]) => { Object.keys(t).forEach(k => t[k] += x[k]); return t; }, { count: 0, revenue: 0, cut: 0, inc: 0, exp: 0, discount: 0 });
+  const cell = (n, cls) => `<td class="${cls || ""}">${money(n)}</td>`;
+  // 累計淨利：從第一個月一路加到該月（不受上方範圍切換影響）
+  const cum = new Map(); let run = 0;
+  all.slice().reverse().forEach(([k, x]) => { run += netOf(x); cum.set(k, run); });
+  const total = all.reduce((t, [, x]) => { Object.keys(t).forEach(k => t[k] += x[k]); return t; }, { count: 0, revenue: 0, cut: 0, inc: 0, exp: 0, discount: 0 });
+  const tNet = netOf(total);
+  $("cumHint").textContent = all.length ? `${all[all.length - 1][0]} 開始記帳到現在，共 ${all.length} 個月有資料。` : "還沒有資料。";
+  $("cumStats").innerHTML = `
+    <div class="stat big"><span>累計淨利</span><strong class="${tNet < 0 ? "exp" : ""}">${money(tNet)}</strong><small>全部營業收入＋其他收入 − 技師抽成 − 其他支出</small></div>
+    <div class="stat"><span>累計營業收入</span><strong>${money(total.revenue)}</strong><small>${total.count} 次服務${total.discount ? "・折扣 " + money(total.discount) : ""}</small></div>
+    <div class="stat"><span>累計技師抽成</span><strong class="exp">${money(total.cut)}</strong></div>
+    <div class="stat"><span>累計其他收入</span><strong class="inc">${money(total.inc)}</strong></div>
+    <div class="stat"><span>累計其他支出</span><strong class="exp">${money(total.exp)}</strong></div>`;
+  const line = (label, x, cls, c) => `<tr class="${cls || ""}"><td>${label}</td><td>${x.count}</td>${cell(x.revenue)}${cell(x.cut, "exp")}${cell(x.inc, "inc")}${cell(x.exp, "exp")}${cell(netOf(x), netOf(x) < 0 ? "exp" : "")}${c == null ? "<td></td>" : cell(c, c < 0 ? "exp" : "")}</tr>`;
+  $("monthTable").innerHTML = rows.length
+    ? `<thead><tr><th>月份</th><th>服務</th><th>營業收入</th><th>技師抽成</th><th>其他收入</th><th>其他支出</th><th>淨利</th><th>累計淨利</th></tr></thead><tbody>` +
+      line("合計", sum, "sum", null) + rows.map(([k, x]) => line(`<button type="button" class="mbtn" data-month="${k}">${k}</button>`, x, "", cum.get(k))).join("") + "</tbody>"
+    : `<tbody><tr><td class="empty" style="position:static">還沒有資料。</td></tr></tbody>`;
+  // 分類報表的期間選單
+  const cur = $("rPeriod").value || businessDate().slice(0, 7);
+  const months = all.map(([k]) => k); if (!months.includes(cur) && cur) months.unshift(cur); months.sort().reverse();
+  fillSelect($("rPeriod"), [{ value: "all", label: "全部期間" }].concat(months.map(k => ({ value: k, label: k }))), cur);
+  renderCatReport();
+}
+function renderCatReport() {
+  const key = $("rPeriod").value, inPeriod = d => key === "all" || (d || "").startsWith(key);
+  const inc = new Map(), exp = new Map(), add = (m, k, v) => m.set(k, (m.get(k) || 0) + v);
+  state.services.forEach(r => { if (inPeriod(r.date)) { add(inc, SYS.income, r.paid); add(exp, SYS.expense, r.techCut); } });
+  state.entries.forEach(r => { if (inPeriod(r.date)) add(r.type === "income" ? inc : exp, r.category, r.amount); });
+  const group = (title, m, color, cls) => {
+    const list = [...m.entries()].filter(([, v]) => v).sort((a, b) => b[1] - a[1]), total = list.reduce((t, [, v]) => t + v, 0);
+    return { total, html: `<div class="catgroup"><div class="cathead"><span>${title}</span><b class="${cls}">${money(total)}</b></div>` +
+      (list.length ? list.map(([k, v]) => { const pct = total ? Math.round(v / total * 100) : 0;
+        return `<div class="catrow"><div class="catline"><span>${esc(k)}</span><span><b>${money(v)}</b><small>${pct}%</small></span></div><div class="bar"><i style="width:${pct}%;background:var(${color})"></i></div></div>`; }).join("")
+        : `<div class="hint">沒有資料</div>`) + "</div>" };
+  };
+  const a = group("收入", inc, "--income", "inc"), b = group("支出", exp, "--expense", "exp"), net = a.total - b.total;
+  $("catReport").innerHTML = a.html + b.html + `<div class="netline"><span>淨利</span><b class="${net < 0 ? "exp" : ""}">${money(net)}</b></div>`;
+  // 折扣統計：同一個期間，依折扣原因分組
+  const dm = new Map(); let dCount = 0, dTotal = 0, sCount = 0;
+  state.services.forEach(r => {
+    if (!inPeriod(r.date)) return; sCount++;
+    const off = r.price - r.paid; if (off <= 0) return;
+    const k = r.discName || "自訂", x = dm.get(k) || { count: 0, off: 0 };
+    x.count++; x.off += off; dm.set(k, x); dCount++; dTotal += off;
+  });
+  $("discPeriod").textContent = `${key === "all" ? "全部期間" : key}・${sCount} 次服務中有 ${dCount} 次打折，共折掉 ${money(dTotal)}`;
+  const dl = [...dm.entries()].sort((a, b) => b[1].off - a[1].off);
+  $("discReport").innerHTML = dl.length ? dl.map(([k, x]) => { const pct = dTotal ? Math.round(x.off / dTotal * 100) : 0;
+    return `<div class="catrow"><div class="catline"><span>${esc(k)}<small style="margin-left:6px">${x.count} 次</small></span><span><b>${money(x.off)}</b><small>${pct}%</small></span></div><div class="bar"><i style="width:${pct}%;background:var(--warn)"></i></div></div>`; }).join("")
+    : `<div class="hint" style="margin:0">這段期間沒有打折。</div>`;
+}
+$("rRangeSeg").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  reportRange = +b.dataset.r;
+  $("rRangeSeg").querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
+  renderReport();
+});
+$("rPeriod").addEventListener("change", renderCatReport);
+$("monthTable").addEventListener("click", e => {
+  const b = e.target.closest("[data-month]"); if (!b) return;
+  $("rPeriod").value = b.dataset.month; renderCatReport();
+  $("catCard").scrollIntoView({ behavior: "smooth", block: "start" });
+});
+
+/* ---------- 技師結算 ---------- */
+let payMode = "day";
+$("payModeSeg").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  payMode = b.dataset.pm;
+  $("payModeSeg").querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
+  $("payDayWrap").hidden = payMode !== "day"; $("payMonthWrap").hidden = payMode !== "month";
+  renderPay();
+});
+["pDay", "pMonth"].forEach(id => $(id).addEventListener("change", renderPay));
+function renderPay() {
+  const key = payMode === "day" ? $("pDay").value : $("pMonth").value;
+  const list = state.services.filter(r => key && (payMode === "day" ? r.date === key : (r.date || "").startsWith(key)));
+  const by = new Map();
+  techNames().forEach(n => by.set(n, []));
+  list.forEach(r => { if (!by.has(r.tech)) by.set(r.tech, []); by.get(r.tech).push(r); });
+  let total = 0, company = 0, html = "";
+  by.forEach((rows, name) => {
+    if (!rows.length) return;
+    const cut = rows.reduce((s, r) => s + r.techCut, 0), comp = rows.reduce((s, r) => s + r.company, 0);
+    const nights = rows.filter(r => r.night).length;
+    total += cut; company += comp;
+    rows.sort((a, b) => a.date.localeCompare(b.date) || (a.created || 0) - (b.created || 0));
+    html += `<details class="pay"><summary><div class="who"><b>${esc(name)}</b><small>${rows.length} 次服務${nights ? `・過12點 ${nights} 次` : ""}・原價合計 ${money(rows.reduce((s, r) => s + r.price, 0))}</small></div>
+      <div class="owe"><b>${money(cut)}</b><small>應付技師・公司得 ${money(comp)}</small></div></summary>
+      <div class="inner">${rows.map(r => (payMode === "month" ? `<div class="day">${esc(r.date)}</div>` : "") + svcHTML(r, false)).join("")}</div></details>`;
+  });
+  $("payStats").innerHTML = `<div class="stat"><span>應付技師合計</span><strong class="exp">${money(total)}</strong></div>
+    <div class="stat"><span>公司實得（服務）</span><strong class="inc">${money(company)}</strong></div>`;
+  $("payList").innerHTML = html || `<div class="empty">這段期間沒有服務紀錄。</div>`;
+}
+
+/* ---------- 設定 ---------- */
+let draft = null, settingsDirty = false;
+function markDirty() { settingsDirty = true; $("saveBar").classList.remove("clean"); }
+function loadDraft() {
+  draft = clone({ settings: state.settings, technicians: state.technicians, items: state.items, discounts: state.discounts.map(d => ({ name: d.name, text: discText(d.pct) })) });
+  settingsDirty = false; $("saveBar").classList.add("clean");
+  renderDraft();
+}
+function renderDraft() {
+  $("techEdit").innerHTML = draft.technicians.length ? draft.technicians.map((t, i) => `
+    <div class="editrow techrow">
+      <label class="name">名稱<input data-t="${i}" data-k="name" value="${esc(t.name)}" placeholder="例如：小美"></label>
+      <label>一般抽成%<input data-t="${i}" data-k="rate" type="number" inputmode="numeric" min="0" max="100" value="${t.rate}"></label>
+      <label>過12點%<input data-t="${i}" data-k="nightRate" type="number" inputmode="numeric" min="0" max="100" value="${t.nightRate}"></label>
+      <label class="chk">在職<input data-t="${i}" data-k="active" type="checkbox" ${t.active ? "checked" : ""}></label>
+      <button class="del" type="button" data-rm-tech="${i}" aria-label="刪除技師">×</button>
+    </div>`).join("") : `<p class="hint">還沒有技師。</p>`;
+  $("itemEdit").innerHTML = draft.items.length ? draft.items.map((it, i) => `
+    <div class="editrow itemrow">
+      <label class="name">項目名稱<input data-i="${i}" data-k="name" value="${esc(it.name)}" placeholder="例如：全身按摩"></label>
+      <label>分鐘<input data-i="${i}" data-k="minutes" type="number" inputmode="numeric" min="0" value="${it.minutes}"></label>
+      <label>價格<input data-i="${i}" data-k="price" type="number" inputmode="numeric" min="0" value="${it.price}"></label>
+      <button class="del" type="button" data-rm-item="${i}" aria-label="刪除項目">×</button>
+    </div>`).join("") : `<p class="hint">還沒有服務項目。</p>`;
+  $("discEdit").innerHTML = draft.discounts.length ? draft.discounts.map((d, i) => `
+    <div class="editrow discrow">
+      <label>名稱<input data-d="${i}" data-k="name" value="${esc(d.name)}" placeholder="例如：熟客"></label>
+      <label>幾折<input data-d="${i}" data-k="text" inputmode="decimal" value="${esc(d.text)}" placeholder="例如 9"></label>
+      <button class="del" type="button" data-rm-disc="${i}" aria-label="刪除折扣">×</button>
+    </div>`).join("") : `<p class="hint">還沒有常用折扣。</p>`;
+  const s = draft.settings;
+  $("setNightStart").value = s.nightStart; $("setNightEnd").value = s.nightEnd; $("setShop").value = s.shopName;
+  const tagBox = (key, title, locked = []) => `<label>${title}</label><div class="taglist">${s[key].map((c, i) => locked.includes(c)
+      ? `<span class="sys" title="系統使用，不能移除">${esc(c)}</span>`
+      : `<span>${esc(c)}<button type="button" data-rm-tag="${key}" data-idx="${i}" aria-label="移除">×</button></span>`).join("")}</div>
+    <div class="addline"><input id="add-${key}" placeholder="新增${title}"><button type="button" class="ghost" data-add-tag="${key}">新增</button></div><div style="height:12px"></div>`;
+  $("catEdit").innerHTML = tagBox("incomeCats", "收入分類", [SYS.income]) + tagBox("expenseCats", "支出分類", [SYS.expense].concat(BILL_CATS)) + tagBox("payMethods", "付款方式") +
+    `<p class="hint" style="margin:0">灰色的分類是系統使用，不能移除：「${SYS.income}」「${SYS.expense}」用在記服務，「${BILL_CATS.join("」「")}」用在帳單分攤。</p>`;
+}
+$("tab-set").addEventListener("input", e => {
+  const el = e.target;
+  if (el.dataset.t != null) { const t = draft.technicians[+el.dataset.t]; t[el.dataset.k] = el.type === "checkbox" ? el.checked : el.type === "number" ? (el.value === "" ? "" : +el.value) : el.value; markDirty(); }
+  else if (el.dataset.i != null) { const it = draft.items[+el.dataset.i]; it[el.dataset.k] = el.type === "number" ? (el.value === "" ? "" : +el.value) : el.value; markDirty(); }
+  else if (el.dataset.d != null) { draft.discounts[+el.dataset.d][el.dataset.k] = el.value; markDirty(); }
+  else if (el.id === "setNightStart") { draft.settings.nightStart = el.value; markDirty(); }
+  else if (el.id === "setNightEnd") { draft.settings.nightEnd = el.value; markDirty(); }
+  else if (el.id === "setShop") { draft.settings.shopName = el.value; markDirty(); }
+});
+$("tab-set").addEventListener("change", e => { if (e.target.type === "checkbox" && e.target.dataset.t != null) { draft.technicians[+e.target.dataset.t].active = e.target.checked; markDirty(); } });
+$("tab-set").addEventListener("click", async e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.rmTech != null) { const t = draft.technicians[+b.dataset.rmTech]; if (t.name && !(await askConfirm(`刪除技師「${t.name}」？過去的紀錄會保留。\n暫時不做的話，取消勾選「在職」就好。`, "刪除"))) return; draft.technicians.splice(draft.technicians.indexOf(t), 1); markDirty(); renderDraft(); }
+  else if (b.dataset.rmDisc != null) { draft.discounts.splice(+b.dataset.rmDisc, 1); markDirty(); renderDraft(); }
+  else if (b.dataset.rmItem != null) { draft.items.splice(+b.dataset.rmItem, 1); markDirty(); renderDraft(); }
+  else if (b.dataset.rmTag) { draft.settings[b.dataset.rmTag].splice(+b.dataset.idx, 1); markDirty(); renderDraft(); }
+  else if (b.dataset.addTag) {
+    const key = b.dataset.addTag, input = $("add-" + key), v = input.value.trim().replace(/[、,，]/g, "");
+    if (!v) return; if (draft.settings[key].includes(v)) return toast("已經有這個了");
+    draft.settings[key].push(v); markDirty(); renderDraft();
+  }
+});
+$("tab-set").addEventListener("keydown", e => { if (e.key === "Enter" && e.target.id && e.target.id.startsWith("add-")) { e.preventDefault(); e.target.nextElementSibling.click(); } });
+$("addTech").addEventListener("click", () => { draft.technicians.push({ name: "", rate: 60, nightRate: 70, active: true }); markDirty(); renderDraft(); const ins = $("techEdit").querySelectorAll('input[data-k="name"]'); ins[ins.length - 1].focus(); });
+$("addDisc").addEventListener("click", () => { draft.discounts.push({ name: "", text: "" }); markDirty(); renderDraft(); const ins = $("discEdit").querySelectorAll('input[data-k="name"]'); ins[ins.length - 1].focus(); });
+$("addItem").addEventListener("click", () => { draft.items.push({ name: "", minutes: 60, price: 0 }); markDirty(); renderDraft(); const ins = $("itemEdit").querySelectorAll('input[data-k="name"]'); ins[ins.length - 1].focus(); });
+$("saveSettings").addEventListener("click", () => {
+  if (!settingsDirty) return toast("沒有要儲存的變更");
+  const techs = draft.technicians.map(t => ({ name: String(t.name).trim().replace(/[、,，]/g, ""), rate: t.rate, nightRate: t.nightRate, active: !!t.active }));
+  const items = draft.items.map(i => ({ name: String(i.name).trim(), minutes: i.minutes, price: i.price }));
+  const names = new Set();
+  for (const t of techs) {
+    if (!t.name) return toast("有技師沒填名稱");
+    if (names.has(t.name)) return toast(`技師「${t.name}」重複了`); names.add(t.name);
+    for (const k of ["rate", "nightRate"]) if (t[k] === "" || !(t[k] >= 0 && t[k] <= 100)) return toast(`${t.name} 的%數要在 0～100 之間`);
+  }
+  for (const i of items) {
+    if (!i.name) return toast("有服務項目沒填名稱");
+    if (i.price === "" || i.price < 0) return toast(`「${i.name}」的價格不對`);
+    if (i.minutes === "" || i.minutes < 0) i.minutes = 0;
+  }
+  const discounts = [], dnames = new Set();
+  for (const d of draft.discounts) {
+    const name = String(d.name).trim(), f = parseDisc(d.text);
+    if (!name) return toast("有常用折扣沒填名稱");
+    if (dnames.has(name)) return toast(`折扣「${name}」重複了`); dnames.add(name);
+    if (f == null || f >= 1 || !String(d.text).trim()) return toast(`「${name}」的幾折請填 1～99，例如 9 或 85`);
+    discounts.push({ name, pct: Math.round(f * 100) });
+  }
+  const s = draft.settings;
+  if (toMin(s.nightStart) == null || toMin(s.nightEnd) == null) return toast("請填過12點時段的開始和結束");
+  const settings = Object.assign({}, s, { shopName: (s.shopName || "").trim() || DEFAULT_SETTINGS.shopName });
+  commit({ op: "settings", settings, technicians: techs, items, discounts });
+  loadDraft(); toast("設定已儲存");
+});
+
+/* ---------- 畫面 ---------- */
+function renderAll(keepDraft) {
+  $("shopName").textContent = state.settings.shopName; document.title = state.settings.shopName;
+  renderServiceSelects(); renderDiscChips(); renderEntrySelects(); renderBillSelects(); renderBillCalc(); renderCalc(); renderRecent(); renderList(); renderReport(); renderPay(); setStatus();
+  if ($("tab-set").classList.contains("active") && !keepDraft && !settingsDirty) loadDraft();
+}
+
+(function init() {
+  const bd = businessDate();
+  setBillCat("電費");
+  $("eDate").value = bd; $("fMonth").value = bd.slice(0, 7); $("pDay").value = bd; $("pMonth").value = bd.slice(0, 7);
+  renderAll();
+  resetService(false);
+  loadDraft();
+  if (SHEETS_API_URL) { if (getPass()) sync(); else showLock(); }
+})();
+</script>
+</body>
+</html>
