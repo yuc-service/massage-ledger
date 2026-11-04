@@ -378,7 +378,7 @@ details.pay .inner .item{background:var(--surface2)}
 <script>
 "use strict";
 /* 留空 = 資料只存在這台裝置；貼上 Google Apps Script 的網址（結尾是 /exec）後才會同步到試算表 */
-const SHEETS_API_URL = "";
+const SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbxUmlKbLPDYRjj3qrOIPGBzLv2hzDjT3DrTq-0blKTDjVqftw4zOwjvlTjIwi3Q6J3eOA/exec";
 
 const LS = { data: "massage-ledger-data", pending: "massage-ledger-pending", pass: "massage-ledger-passcode" };
 const SYS = { income: "按摩收入", expense: "技師抽成" };
@@ -511,15 +511,19 @@ async function sync() {
   if (!getPass()) { showLock(); return; }
   if (syncing) { again = true; return; }
   syncing = true; again = false; setStatus();
-  const sent = pending.slice();
+  const sent = pending.slice(), since = state.version || "";
   try {
-    const j = sent.length ? await api({ action: "sync", ops: sent }) : await api({ action: "load" });
+    // 只問「上次之後改了什麼」；手機裡還沒有資料，或紀錄不完整時，伺服器才會回傳整本
+    const j = sent.length ? await api({ action: "sync", ops: sent, since })
+      : await api({ action: since ? "changes" : "load", since });
     pending = pending.slice(sent.length);
     const keepDraft = settingsDirty;
-    state = normalizeData(Object.assign({}, j.data, { version: j.version }));
+    if (j.data) state = normalizeData(Object.assign({}, j.data, { version: j.version }));
+    else { (j.changes || []).forEach(op => applyOp(state, op)); state.version = j.version; }
     pending.forEach(op => applyOp(state, op));
     lastError = ""; lastSyncAt = Date.now();
-    persist(); renderAll(keepDraft);
+    persist();
+    if (j.data || (j.changes && j.changes.length) || sent.length) renderAll(keepDraft);   // 沒有變動就不重畫
   } catch (e) {
     lastError = ERR_TEXT[e.code] || (navigator.onLine === false ? "沒有網路" : (e.message || "連線失敗"));
     if (e.code === "wrong_passcode") { lsSet(LS.pass, null); showLock("密碼錯誤，請重新輸入。"); }
@@ -861,9 +865,11 @@ function renderReport() {
   // 累計淨利：從第一個月一路加到該月（不受上方範圍切換影響）
   const cum = new Map(); let run = 0;
   all.slice().reverse().forEach(([k, x]) => { run += netOf(x); cum.set(k, run); });
-  const total = all.reduce((t, [, x]) => { Object.keys(t).forEach(k => t[k] += x[k]); return t; }, { count: 0, revenue: 0, cut: 0, inc: 0, exp: 0, discount: 0 });
+  // 累計統計只算到本月：預付房租分攤到之後月份的部分，等到了那個月才算
+  const thisMonth = businessDate().slice(0, 7), upto = all.filter(([k]) => k <= thisMonth);
+  const total = upto.reduce((t, [, x]) => { Object.keys(t).forEach(k => t[k] += x[k]); return t; }, { count: 0, revenue: 0, cut: 0, inc: 0, exp: 0, discount: 0 });
   const tNet = netOf(total);
-  $("cumHint").textContent = all.length ? `${all[all.length - 1][0]} 開始記帳到現在，共 ${all.length} 個月有資料。` : "還沒有資料。";
+  $("cumHint").textContent = upto.length ? `${upto[upto.length - 1][0]} 開始記帳到本月（${thisMonth}），共 ${upto.length} 個月有資料。` + (all.length > upto.length ? "之後月份已分攤的預付房租不算在內。" : "") : "還沒有資料。";
   $("cumStats").innerHTML = `
     <div class="stat big"><span>累計淨利</span><strong class="${tNet < 0 ? "exp" : ""}">${money(tNet)}</strong><small>全部營業收入＋其他收入 − 技師抽成 − 其他支出</small></div>
     <div class="stat"><span>累計營業收入</span><strong>${money(total.revenue)}</strong><small>${total.count} 次服務${total.discount ? "・折扣 " + money(total.discount) : ""}</small></div>
